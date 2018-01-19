@@ -114,7 +114,12 @@ function train(data) {
         shuffle: true,
         cost: Trainer.cost.CROSS_ENTROPY
       }
-      
+    
+    // Undersampling data
+    const frauds = data.filter(x => x.output[0] == 1);
+    const valids = data.filter(x => x.output[0] == 0);
+    data = valids.slice(0, 1000).concat(frauds);
+
     trainer.train(data, trainingOptions);
 
     return network;
@@ -123,12 +128,6 @@ function train(data) {
 function test(network, data) {
     const frauds = data.filter(x => x.output[0] == 1);
     const valids = data.filter(x => x.output[0] == 0);
-
-    console.log(network.activate(frauds[0].input));
-    console.log(frauds[0].output);
-
-    console.log(network.activate(valids[0].input));
-    console.log(valids[0].output);
 
     const possibleFrauds = frauds.map(x => network.activate(x.input)[0]).filter(x => x > 0.7);
     console.log(`Frauds possible > 70%: ${possibleFrauds.length}/${frauds.length} (${possibleFrauds.length / frauds.length})`);
